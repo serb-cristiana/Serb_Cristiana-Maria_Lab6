@@ -35,11 +35,15 @@ namespace Serb_Cristiana_Maria_Lab6
         AutoLotEntitiesModel ctx = new AutoLotEntitiesModel();
         CollectionViewSource customerViewSource;
         CollectionViewSource customerOrdersViewSource;
+        CollectionViewSource inventoryViewSource;
         Binding custIdTextBoxBinding = new Binding();
         Binding firstNameTextBoxBinding = new Binding();
         Binding lastNameTextBoxBinding = new Binding();
         Binding txtInventoryBinding = new Binding();
         Binding txtCustomersBinding = new Binding();
+        Binding carIdTextBoxBinding = new Binding();
+        Binding colorTextBoxBinding = new Binding();
+        Binding makeTextBoxBinding = new Binding();
         public MainWindow()
         {
             InitializeComponent();
@@ -51,13 +55,15 @@ namespace Serb_Cristiana_Maria_Lab6
             customerViewSource.Source = ctx.Customers.Local;
             customerOrdersViewSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("customerOrdersViewSource")));
             customerOrdersViewSource.Source = ctx.Orders.Local;
+            inventoryViewSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("inventoryViewSource")));
+            inventoryViewSource.Source = ctx.Inventory.Local;
             ctx.Customers.Load();
             ctx.Orders.Load();
-            ctx.Inventories.Load();
+            ctx.Inventory.Load();
             cmbCustomers.ItemsSource = ctx.Customers.Local;
             //cmbCustomers.DisplayMemberPath = "FirstName";
             //cmbCustomers.SelectedValuePath = "CustId";
-            cmbInventory.ItemsSource = ctx.Inventories.Local;
+            cmbInventory.ItemsSource = ctx.Inventory.Local;
             //cmbInventory.DisplayMemberPath = "Make";
             //cmbInventory.SelectedValuePath = "CarId";
             BindDataGrid();
@@ -219,6 +225,165 @@ namespace Serb_Cristiana_Maria_Lab6
                     MessageBox.Show(ex.Message);
                 }
                 customerViewSource.View.Refresh();
+            }
+        }
+        private void btNew_Click(object sender, RoutedEventArgs e)
+        {
+            action = ActionState.New;
+            btnNew.IsEnabled = false;
+            btnEdit.IsEnabled = false;
+            btnDelete.IsEnabled = false;
+            btnSave.IsEnabled = true;
+            btnCancel.IsEnabled = true;
+            btnPrevious.IsEnabled = false;
+            btnNext.IsEnabled = false;
+            carIdTextBox.IsEnabled = true;
+            colorTextBox.IsEnabled = true;
+            makeTextBox.IsEnabled = true;
+            BindingOperations.ClearBinding(carIdTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(colorTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(makeTextBox, TextBox.TextProperty);
+            carIdTextBox.Text = "";
+            colorTextBox.Text = "";
+            makeTextBox.Text = "";
+            Keyboard.Focus(carIdTextBox);
+        }
+        private void btEdit_Click(object sender, RoutedEventArgs e)
+        {
+            action = ActionState.Edit;
+            string tempcarIdTextBox = carIdTextBox.Text.ToString();
+            string tempcolorTextBox = colorTextBox.Text.ToString();
+            string tempmakeTextBox = makeTextBox.Text.ToString();
+            btnNew.IsEnabled = false;
+            btnEdit.IsEnabled = false;
+            btnDelete.IsEnabled = false;
+            btnSave.IsEnabled = true;
+            btnCancel.IsEnabled = true;
+            btnPrevious.IsEnabled = false;
+            btnNext.IsEnabled = false;
+            carIdTextBox.IsEnabled = true;
+            colorTextBox.IsEnabled = true;
+            makeTextBox.IsEnabled = true;
+            BindingOperations.ClearBinding(carIdTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(colorTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(makeTextBox, TextBox.TextProperty);
+            carIdTextBox.Text = tempcarIdTextBox;
+            colorTextBox.Text = tempcolorTextBox;
+            makeTextBox.Text = tempmakeTextBox;
+            Keyboard.Focus(carIdTextBox);
+        }
+        private void btDelete_Click(object sender, RoutedEventArgs e)
+        {
+            action = ActionState.Delete;
+            string tempcarIdTextBox = carIdTextBox.Text.ToString();
+            string tempcolorTextBox = colorTextBox.Text.ToString();
+            string tempmakeTextBox = makeTextBox.Text.ToString();
+            btnNew.IsEnabled = false;
+            btnEdit.IsEnabled = false;
+            btnDelete.IsEnabled = false;
+            btnSave.IsEnabled = true;
+            btnCancel.IsEnabled = true;
+            btnPrevious.IsEnabled = false;
+            btnNext.IsEnabled = false;
+            BindingOperations.ClearBinding(carIdTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(colorTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(makeTextBox, TextBox.TextProperty);
+            carIdTextBox.Text = tempcarIdTextBox;
+            colorTextBox.Text = tempcolorTextBox;
+            makeTextBox.Text = tempmakeTextBox;
+        }
+        private void btCancel_Click(object sender, RoutedEventArgs e)
+        {
+            action = ActionState.Nothing;
+            btnNew.IsEnabled = true;
+            btnEdit.IsEnabled = true;
+            btnEdit.IsEnabled = true;
+            btnSave.IsEnabled = false;
+            btnCancel.IsEnabled = false;
+            btnPrevious.IsEnabled = true;
+            btnNext.IsEnabled = true;
+            carIdTextBox.IsEnabled = false;
+            colorTextBox.IsEnabled = false;
+            makeTextBox.IsEnabled = false;
+            carIdTextBox.SetBinding(TextBox.TextProperty, carIdTextBoxBinding);
+            colorTextBox.SetBinding(TextBox.TextProperty, colorTextBoxBinding);
+            makeTextBox.SetBinding(TextBox.TextProperty, makeTextBoxBinding);
+        }
+        private void btExit_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Close Application?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                this.Close();
+            }
+        }
+        private void btNext_Click(object sender, RoutedEventArgs e)
+        {
+            inventoryViewSource.View.MoveCurrentToNext();
+        }
+        private void btPrevious_Click(object sender, RoutedEventArgs e)
+        {
+            inventoryViewSource.View.MoveCurrentToPrevious();
+        }
+        private void btSave_Click(object sender, RoutedEventArgs e)
+        {
+            Inventory inventory = null;
+            if (action == ActionState.New)
+            {
+                try
+                {
+                    inventory = new Inventory()
+                    {
+                        Color = colorTextBox.Text.Trim(),
+                        Make = makeTextBox.Text.Trim()
+                    };
+                    //adaugam entitatea nou creata in context
+                    ctx.Inventory.Add(inventory);
+                    inventoryViewSource.View.Refresh();
+                    //salvam modificarile
+                    ctx.SaveChanges();
+                    SetValidationBinding();
+                }
+                catch (DataException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                inventoryViewSource.View.Refresh();
+            }
+            else
+            if (action == ActionState.Edit)
+            {
+                try
+                {
+                    inventory = (Inventory)inventoryDataGrid.SelectedItem;
+                    inventory.Color = colorTextBox.Text.Trim();
+                    inventory.Make = makeTextBox.Text.Trim();
+                    //salvam modificarile
+                    ctx.SaveChanges();
+                    SetValidationBinding();
+                }
+                catch (DataException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                inventoryViewSource.View.Refresh();
+                // pozitionarea pe item-ul curent
+                inventoryViewSource.View.MoveCurrentTo(inventory);
+
+            }
+            else
+            if (action == ActionState.Delete)
+            {
+                try
+                {
+                    inventory = (Inventory)inventoryDataGrid.SelectedItem;
+                    ctx.Inventory.Remove(inventory);
+                    ctx.SaveChanges();
+                }
+                catch (DataException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                inventoryViewSource.View.Refresh();
             }
         }
         private void butonNew_Click(object sender, RoutedEventArgs e)
@@ -385,8 +550,8 @@ namespace Serb_Cristiana_Maria_Lab6
             var queryOrder = from ord in ctx.Orders
                              join cust in ctx.Customers on ord.CustId equals
                              cust.CustId
-                             join inv in ctx.Inventories on ord.CarId
-                 equals inv.CarId
+                             join inv in ctx.Inventory on ord.CarId equals 
+                             inv.CarId
                              select new
                              {
                                  ord.OrderId,
